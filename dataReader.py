@@ -10,6 +10,7 @@ import json
 import re
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 
 # Web Functions
@@ -186,7 +187,48 @@ def readCoords2D(fileInName):
         vList = [v for v in covisDict['grid'][0][0][0]['v']]
         wList = [w for w in covisDict['grid'][0][0][0]['w']]
         coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
+        return coordsDict
 
+
+def readCoords3D(fileInName):
+    with open(fileInName) as fileIn:
+        covisDict = convertFile(fileInName)
+        xList = [x for x in covisDict['grid'][0][0][0]['x']]
+        yList = [y for y in covisDict['grid'][0][0][0]['y']]
+        zList = [z for z in covisDict['grid'][0][0][0]['z']]
+        vList = [v for v in covisDict['grid'][0][0][0]['v']]
+        wList = [w for w in covisDict['grid'][0][0][0]['w']]
+        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
+        return coordsDict
+    
+
+def createCoordsOfInterest(fileInName):
+    coordsDict = readCoords2D(fileInName)
+    coordsOfInterest = {'xList': [], 'yList': [], 'vList': [], 'wList': []}
+    ind = 0
+    for key in coordsDict.keys():
+        for array in coordsDict['vList']:
+            coordsOfInterest[key].append(coordsDict[key][ind])
+            ind += 1
+        ind = 0
+    return coordsDict
+
+    
+def plotDiffuse2D(fileInName):
+    coordsOfInterest = createCoordsOfInterest(r'matFiles\COVIS-20230701T003002-diffuse1.mat')
+    plt.figure(figsize=(10, 6))
+    max = np.amax(np.concatenate(coordsOfInterest['vList']))
+    min = np.amin(np.concatenate(coordsOfInterest['vList'])) + 10e-10
+    norm = mcolors.LogNorm(vmin=min, vmax=max)
+    scatter = plt.scatter(coordsOfInterest['xList'], coordsOfInterest['yList'], c = coordsOfInterest['vList'], cmap = 'viridis', norm = norm)
+
+    cbar = plt.colorbar(scatter)
+    cbar.set_label('Data Values')
+
+    plt.xlabel('East of COVIS (m)')
+    plt.ylabel('North of COVIS (m)')
+    plt.title(fileInName.split('\\')[-1])
+    plt.show()
 
 
 def loadJSONFile(fileInName):
@@ -199,8 +241,7 @@ def loadJSONFile(fileInName):
 
 # Menu and main method
 def main():
-    
-
+    plotDiffuse2D(r'matFiles\COVIS-20230701T003002-diffuse1.mat')
 
 
 main()
