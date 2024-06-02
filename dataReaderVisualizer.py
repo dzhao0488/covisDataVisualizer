@@ -46,7 +46,6 @@ def checkForMatFiles(link, choice):
         print('Invalid Choice')
 
 
-
 def downloadYearFolder(yearLink):
     page = urlopen(yearLink)
     html = page.read().decode('utf-8')
@@ -57,9 +56,8 @@ def downloadYearFolder(yearLink):
     
     for link in fullLinks:
         downloadMonthFolder(link)
-        
-    
-    
+
+
 def downloadMonthFolder(monthLink):
     page = urlopen(monthLink)
     html = page.read().decode('utf-8')
@@ -100,11 +98,86 @@ def downloadFile(fileLink):
             urlretrieve(f'{link}', f'C:\\Users\\imort\\OneDrive\\Documents\\Personal Projects\\VizLab\\dataReader\\matFiles\\{links[i]}')
             print(f'{link} has been successfully downloaded')
             i += 1
-    
+
 
 # Local Directory Functions
 
+# Converts a .mat file into a JSON file and returns a dictionary containing the contents of the .mat file
+def convertFile(fileInName):   
+    with open(fileInName, 'r') as fileIn:
+        fileContents = scipy.io.loadmat(fileInName)
+        covisDict = {}
+        covisDict['header'] = fileContents['__header__'].decode('utf-8')
+        covisDict['version'] = fileContents['__version__']
+        covisDict['globals'] = fileContents['__globals__']
+        covis = fileContents['covis'][0][0]
+        for name in covis.dtype.names:
+            covisDict[name] = covis[name][0]
+        
+        print(f'{fileInName} has been converted')
+        return covisDict
+
+
+def readCoords2D(fileInName):
+    with open(fileInName) as fileIn:
+        covisDict = convertFile(fileInName)
+        xList = [x for x in covisDict['grid'][0][0][0]['x']]
+        yList = [y for y in covisDict['grid'][0][0][0]['y']]
+        vList = [v for v in covisDict['grid'][0][0][0]['v']]
+        wList = [w for w in covisDict['grid'][0][0][0]['w']]
+        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
+        return coordsDict
+
+
+def readCoords3D(fileInName):
+    with open(fileInName) as fileIn:
+        covisDict = convertFile(fileInName)
+        xList = [x for x in covisDict['grid'][0][0][0]['x']]
+        yList = [y for y in covisDict['grid'][0][0][0]['y']]
+        zList = [z for z in covisDict['grid'][0][0][0]['z']]
+        vList = [v for v in covisDict['grid'][0][0][0]['v']]
+        wList = [w for w in covisDict['grid'][0][0][0]['w']]
+        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
+        return coordsDict
+    
+
+def createCoordsOfInterest(fileInName):
+    coordsDict = readCoords2D(fileInName)
+    coordsOfInterest = {x: [] for x in coordsDict.keys()}
+    ind = 0
+    for key in coordsDict.keys():
+        for array in coordsDict['vList']:
+            coordsOfInterest[key].append(coordsDict[key][ind])
+            ind += 1
+        ind = 0
+    return coordsDict
+
+    
+def plotDiffuse2D(fileInName):
+    coordsOfInterest = createCoordsOfInterest(r'matFiles\COVIS-20230701T003002-diffuse1.mat')
+    plt.figure(figsize=(10, 6))
+    max = np.amax(np.concatenate(coordsOfInterest['vList']))
+    min = np.amin(np.concatenate(coordsOfInterest['vList'])) + 10e-10
+    norm = mcolors.LogNorm(vmin=min, vmax=max)
+    scatter = plt.scatter(coordsOfInterest['xList'], coordsOfInterest['yList'], c = coordsOfInterest['vList'], cmap = 'viridis', norm = norm)
+
+    cbar = plt.colorbar(scatter)
+    cbar.set_label('Data Values')
+
+    plt.xlabel('East of COVIS (m)')
+    plt.ylabel('North of COVIS (m)')
+    plt.title(fileInName.split('\\')[-1])
+    plt.show()
+
+
 # WIP
+
+def createJSONFromFile(fileInName, fileOutName):
+    with open(fileInName) as fileIn, open(fileOutName, 'w') as fileOut:
+        json.dump(convertFile(fileInName), fileOut, indent = 4, cls = NumpyEncoder)
+        print(f'Created JSON file for {fileInName}')
+
+
 def addToDirectory(fileName):
     if Path('directory.csv').exists():
         rows = []
@@ -128,7 +201,6 @@ def addToDirectory(fileName):
             writer.writerow([extension, fileName])
 
 
-# WIP
 def displayLocalDirectory():
     with open('directory.csv', 'r') as fileIn:
         reader = csv.reader(fileIn)
@@ -156,80 +228,6 @@ class NumpyEncoder(json.JSONEncoder):
                 return obj.item()
             return json.JSONEncoder.default(self, obj)
 
-# Converts a .mat file into a JSON file and returns a dictionary containing the contents of the .mat file
-def convertFile(fileInName):   
-    with open(fileInName, 'r') as fileIn:
-        fileContents = scipy.io.loadmat(fileInName)
-        covisDict = {}
-        covisDict['header'] = fileContents['__header__'].decode('utf-8')
-        covisDict['version'] = fileContents['__version__']
-        covisDict['globals'] = fileContents['__globals__']
-        covis = fileContents['covis'][0][0]
-        for name in covis.dtype.names:
-            covisDict[name] = covis[name][0]
-        
-        print(f'{fileInName} has been converted')
-        return covisDict
-    
-
-def createJSONFromFile(fileInName, fileOutName):
-    with open(fileInName) as fileIn, open(fileOutName, 'w') as fileOut:
-        json.dump(convertFile(fileInName), fileOut, indent = 4, cls = NumpyEncoder)
-        print(f'Created JSON file for {fileInName}')
-
-# WIP
-
-def readCoords2D(fileInName):
-    with open(fileInName) as fileIn:
-        covisDict = convertFile(fileInName)
-        xList = [x for x in covisDict['grid'][0][0][0]['x']]
-        yList = [y for y in covisDict['grid'][0][0][0]['y']]
-        vList = [v for v in covisDict['grid'][0][0][0]['v']]
-        wList = [w for w in covisDict['grid'][0][0][0]['w']]
-        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
-        return coordsDict
-
-
-def readCoords3D(fileInName):
-    with open(fileInName) as fileIn:
-        covisDict = convertFile(fileInName)
-        xList = [x for x in covisDict['grid'][0][0][0]['x']]
-        yList = [y for y in covisDict['grid'][0][0][0]['y']]
-        zList = [z for z in covisDict['grid'][0][0][0]['z']]
-        vList = [v for v in covisDict['grid'][0][0][0]['v']]
-        wList = [w for w in covisDict['grid'][0][0][0]['w']]
-        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
-        return coordsDict
-    
-
-def createCoordsOfInterest(fileInName):
-    coordsDict = readCoords2D(fileInName)
-    coordsOfInterest = {'xList': [], 'yList': [], 'vList': [], 'wList': []}
-    ind = 0
-    for key in coordsDict.keys():
-        for array in coordsDict['vList']:
-            coordsOfInterest[key].append(coordsDict[key][ind])
-            ind += 1
-        ind = 0
-    return coordsDict
-
-    
-def plotDiffuse2D(fileInName):
-    coordsOfInterest = createCoordsOfInterest(r'matFiles\COVIS-20230701T003002-diffuse1.mat')
-    plt.figure(figsize=(10, 6))
-    max = np.amax(np.concatenate(coordsOfInterest['vList']))
-    min = np.amin(np.concatenate(coordsOfInterest['vList'])) + 10e-10
-    norm = mcolors.LogNorm(vmin=min, vmax=max)
-    scatter = plt.scatter(coordsOfInterest['xList'], coordsOfInterest['yList'], c = coordsOfInterest['vList'], cmap = 'viridis', norm = norm)
-
-    cbar = plt.colorbar(scatter)
-    cbar.set_label('Data Values')
-
-    plt.xlabel('East of COVIS (m)')
-    plt.ylabel('North of COVIS (m)')
-    plt.title(fileInName.split('\\')[-1])
-    plt.show()
-
 
 def loadJSONFile(fileInName):
     with open(fileInName) as fileIn:
@@ -237,11 +235,36 @@ def loadJSONFile(fileInName):
         # covisDict = np.asarray(fileContents["a"])
         return fileContents
 
+# User Interface
+def displayMenu():
+    menuList = ['1: Download files ', '2: Plot diffuse 2D from local file', '3: Plot imaging 3D from local file']
+    for item in menuList:
+        print(item)
+
+def downloadNav(tf):
+    if tf == '1':
+        yearLink = input('Please paste the full link: ')
+        downloadYearFolder(yearLink)
+    elif tf == '2':
+        monthLink = input('Please paste the full link: ')
+        downloadMonthFolder(monthLink)
+    elif tf == '3':
+        dayLink = input('Plesae paste the full link: ')
+        downloadDayFolder(dayLink)
+    elif tf == '4':
+        fileLink = input('Please paste the full link: ')
+        downloadDayFolder(fileLink)
 
 
-# Menu and main method
 def main():
-    plotDiffuse2D(r'matFiles\COVIS-20230701T003002-diffuse1.mat')
-
+    while True:
+        displayMenu()
+        choice = input('Choose an option (0 to quit): ')
+        if choice == '1':
+            downloadNav(input('Choose a time frame (1 for year, 2 for month, 3 for day, or 4 for single file): '))
+        elif choice == '2':
+            plotDiffuse2D(input('Please paste the relative file path: '))
+        elif choice == '0':
+            break
 
 main()
