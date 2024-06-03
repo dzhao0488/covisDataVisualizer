@@ -94,8 +94,9 @@ def downloadFile(fileLink):
         return fileLink
     else:
         i = 0
+        cwd = os.getcwd()
         for link in fullLinks:
-            urlretrieve(f'{link}', f'C:\\Users\\imort\\OneDrive\\Documents\\Personal Projects\\VizLab\\dataReader\\matFiles\\{links[i]}')
+            urlretrieve(f'{link}', f'{cwd}\\matFiles\\{links[i]}')
             print(f'{link} has been successfully downloaded')
             i += 1
 
@@ -137,7 +138,7 @@ def readCoords3D(fileInName):
         zList = [z for z in covisDict['grid'][0][0][0]['z']]
         vList = [v for v in covisDict['grid'][0][0][0]['v']]
         wList = [w for w in covisDict['grid'][0][0][0]['w']]
-        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
+        coordsDict = {'xList': xList, 'yList': yList, 'zList': zList, 'vList': vList, 'wList': wList}
         return coordsDict
     
 
@@ -257,6 +258,7 @@ def downloadNav(tf):
 
 
 def main():
+
     while True:
         displayMenu()
         choice = input('Choose an option (0 to quit): ')
@@ -266,5 +268,6 @@ def main():
             plotDiffuse2D(input('Please paste the relative file path: '))
         elif choice == '0':
             break
+
 
 main()
