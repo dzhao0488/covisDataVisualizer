@@ -120,26 +120,24 @@ def convertFile(fileInName):
 
 
 def readCoords2D(fileInName):
-    with open(fileInName) as fileIn:
-        covisDict = convertFile(fileInName)
-        xList = [x for x in covisDict['grid'][0][0][0]['x']]
-        yList = [y for y in covisDict['grid'][0][0][0]['y']]
-        vList = [v for v in covisDict['grid'][0][0][0]['v']]
-        wList = [w for w in covisDict['grid'][0][0][0]['w']]
-        coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
-        return coordsDict
+    covisDict = convertFile(fileInName)
+    xList = [x for x in covisDict['grid'][0][0][0]['x']]
+    yList = [y for y in covisDict['grid'][0][0][0]['y']]
+    vList = [v for v in covisDict['grid'][0][0][0]['v']]
+    wList = [w for w in covisDict['grid'][0][0][0]['w']]
+    coordsDict = {'xList': xList, 'yList': yList, 'vList': vList, 'wList': wList}
+    return coordsDict
 
 
 def readCoords3D(fileInName):
-    with open(fileInName) as fileIn:
-        covisDict = convertFile(fileInName)
-        xList = [x for x in covisDict['grid'][0][0][0]['x']]
-        yList = [y for y in covisDict['grid'][0][0][0]['y']]
-        zList = [z for z in covisDict['grid'][0][0][0]['z']]
-        vList = [v for v in covisDict['grid'][0][0][0]['v']]
-        wList = [w for w in covisDict['grid'][0][0][0]['w']]
-        coordsDict = {'xList': xList, 'yList': yList, 'zList': zList, 'vList': vList, 'wList': wList}
-        return coordsDict
+    covisDict = convertFile(fileInName)
+    xList = [x for x in covisDict['grid'][0][0][0]['x']]
+    yList = [y for y in covisDict['grid'][0][0][0]['y']]
+    zList = [z for z in covisDict['grid'][0][0][0]['z']]
+    vList = [v for v in covisDict['grid'][0][0][0]['v']]
+    wList = [w for w in covisDict['grid'][0][0][0]['w']]
+    coordsDict = {'xList': xList, 'yList': yList, 'zList': zList, 'vList': vList, 'wList': wList}
+    return coordsDict
     
 
 def createCoordsOfInterest(fileInName):
@@ -159,7 +157,7 @@ def plotDiffuse2D(fileInName):
     plt.figure(figsize=(10, 6))
     max = np.amax(np.concatenate(coordsOfInterest['vList']))
     min = np.amin(np.concatenate(coordsOfInterest['vList'])) + 10e-10
-    norm = mcolors.LogNorm(vmin=min, vmax=max)
+    norm = mcolors.LogNorm(vmin = min, vmax = max)
     scatter = plt.scatter(coordsOfInterest['xList'], coordsOfInterest['yList'], c = coordsOfInterest['vList'], cmap = 'viridis', norm = norm)
 
     cbar = plt.colorbar(scatter)
@@ -250,7 +248,7 @@ def downloadNav(tf):
         monthLink = input('Please paste the full link: ')
         downloadMonthFolder(monthLink)
     elif tf == '3':
-        dayLink = input('Plesae paste the full link: ')
+        dayLink = input('Please paste the full link: ')
         downloadDayFolder(dayLink)
     elif tf == '4':
         fileLink = input('Please paste the full link: ')
