@@ -213,27 +213,6 @@ def displayLocalDirectory():
         for fileName in fileList:
             print (fileName)
 
-
-# Inspired by https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable
-class NumpyEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, np.ndarray):
-                return obj.tolist()
-            elif isinstance(obj, np.void):
-                return {name: obj[name] for name in obj.dtype.names}
-            elif isinstance(obj, bytes):
-                return obj.decode('utf-8')
-            elif isinstance(obj, np.generic):
-                return obj.item()
-            return json.JSONEncoder.default(self, obj)
-
-
-def loadJSONFile(fileInName):
-    with open(fileInName) as fileIn:
-        fileContents = json.loads(fileInName)
-        # covisDict = np.asarray(fileContents["a"])
-        return fileContents
-
 # User Interface
 def displayMenu():
     menuList = ['1: Download files ', '2: Plot diffuse 2D from local file', '3: Plot imaging 3D from local file']
