@@ -2,15 +2,11 @@ from urllib.request import urlopen
 from urllib.request import urlretrieve
 from pathlib import Path
 import os
-import scipy
 import pandas as pd
 import numpy as np
 import csv
-import json
 import re
 from collections import defaultdict
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 
 
 # Web Functions
@@ -46,7 +42,7 @@ def checkForMatFiles(link, choice):
         print('Invalid Choice')
 
 
-def downloadYearFolder(yearLink):
+def downloadYearFolder(yearLink, fileType = None):
     page = urlopen(yearLink)
     html = page.read().decode('utf-8')
 
@@ -55,10 +51,10 @@ def downloadYearFolder(yearLink):
     fullLinks = [f'{yearLink}{link}' for link in links]
     
     for link in fullLinks:
-        downloadMonthFolder(link)
+        downloadMonthFolder(link, fileType = None)
 
 
-def downloadMonthFolder(monthLink):
+def downloadMonthFolder(monthLink, fileType = None):
     page = urlopen(monthLink)
     html = page.read().decode('utf-8')
 
@@ -67,10 +63,10 @@ def downloadMonthFolder(monthLink):
     fullLinks = [f'{monthLink}{link}' for link in links]
     
     for link in fullLinks:
-        downloadDayFolder(link)
+        downloadDayFolder(link, fileType)
 
 
-def downloadDayFolder(dayLink):
+def downloadDayFolder(dayLink, fileType = None):
     page = urlopen(dayLink)
     html = page.read().decode('utf-8')
 
@@ -79,16 +75,18 @@ def downloadDayFolder(dayLink):
     fullLinks = [f'{dayLink}{link}' for link in links]
     
     for link in fullLinks:
-        downloadFile(link)
+        downloadFile(link, fileType)
 
 
-def downloadFile(fileLink):
+def downloadFile(fileLink, fileType = None):
     page = urlopen(fileLink)
     html = page.read().decode('utf-8')
 
     pattern = r'href\s*=\s*["\']([^"\']+\.mat)["\']'
     links = re.findall(pattern, html)
     fullLinks = [f'{fileLink}{link}' for link in links]
+    if fileType:
+        fullLinks = [link for link in links if fileType in link.lower()]
 
     if (not fullLinks):
         return fileLink
@@ -138,23 +136,27 @@ def displayLocalDirectory():
 
 # User Interface
 def displayMenu():
-    menuList = ['1: Download files ', '2: Plot diffuse 2D from local file', '3: Plot imaging 3D from local file']
+    menuList = ['1: Download files ']
     for item in menuList:
         print(item)
 
 def downloadNav(tf):
     if tf == '1':
         yearLink = input('Please paste the full link: ')
-        downloadYearFolder(yearLink)
+        fileType = input('Please choose file type: diffuse, doppler, imaging (blank for all): ')
+        downloadYearFolder(yearLink, fileType)
     elif tf == '2':
         monthLink = input('Please paste the full link: ')
-        downloadMonthFolder(monthLink)
+        fileType = input('Please choose file type: diffuse, doppler, imaging (blank for all): ')
+        downloadMonthFolder(monthLink, fileType)
     elif tf == '3':
         dayLink = input('Please paste the full link: ')
-        downloadDayFolder(dayLink)
+        fileType = input('Please choose file type: diffuse, doppler, imaging (blank for all): ')
+        downloadDayFolder(dayLink, fileType)
     elif tf == '4':
         fileLink = input('Please paste the full link: ')
-        downloadDayFolder(fileLink)
+        fileType = input('Please choose file type: diffuse, doppler, imaging (blank for all): ')
+        downloadDayFolder(fileLink, fileType)
 
 
 def main():
@@ -164,5 +166,7 @@ def main():
         choice = input('Choose an option (0 to quit): ')
         if choice == '1':
             downloadNav(input('Choose a time frame (1 for year, 2 for month, 3 for day, or 4 for single file): '))
+        elif choice == '0':
+            return
 
 main()
