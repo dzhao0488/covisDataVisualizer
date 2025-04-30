@@ -51,7 +51,7 @@ def downloadYearFolder(yearLink, fileType = None):
     fullLinks = [f'{yearLink}{link}' for link in links]
     
     for link in fullLinks:
-        downloadMonthFolder(link, fileType = None)
+        downloadMonthFolder(link, fileType)
 
 
 def downloadMonthFolder(monthLink, fileType = None):
@@ -65,7 +65,7 @@ def downloadMonthFolder(monthLink, fileType = None):
     for link in fullLinks:
         downloadDayFolder(link, fileType)
 
-
+# WIP
 def downloadDayFolder(dayLink, fileType = None):
     page = urlopen(dayLink)
     html = page.read().decode('utf-8')
@@ -74,29 +74,31 @@ def downloadDayFolder(dayLink, fileType = None):
     links = re.findall(pattern, html)
     fullLinks = [f'{dayLink}{link}' for link in links]
     
+    
     for link in fullLinks:
         downloadFile(link, fileType)
 
-
-def downloadFile(fileLink, fileType = None):
+# WIP
+def downloadFile(fileLink, fileType=None):
     page = urlopen(fileLink)
     html = page.read().decode('utf-8')
 
     pattern = r'href\s*=\s*["\']([^"\']+\.mat)["\']'
     links = re.findall(pattern, html)
-    fullLinks = [f'{fileLink}{link}' for link in links]
-    if fileType:
-        fullLinks = [link for link in links if fileType in link.lower()]
+    if not links:
+        return 0
 
-    if (not fullLinks):
-        return fileLink
-    else:
-        i = 0
-        cwd = os.getcwd()
-        for link in fullLinks:
-            urlretrieve(f'{link}', f'{cwd}\\matFiles\\{links[i]}')
-            print(f'{link} has been successfully downloaded')
-            i += 1
+    cwd = os.getcwd()
+    for link in links:
+        if fileType and fileType.lower() not in link.lower():
+            print(f'{link} rejected (wrong type)')
+            continue
+
+        fullLink = f'{fileLink}{link}'
+        os.makedirs(os.path.join(cwd, 'matFiles'), exist_ok=True)
+        urlretrieve(fullLink, os.path.join(cwd, 'matFiles', link))
+        print(f'{link} has been successfully downloaded')
+
 
 def addToDirectory(fileName):
     if Path('directory.csv').exists():
