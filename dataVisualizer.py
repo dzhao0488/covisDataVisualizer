@@ -65,7 +65,6 @@ def downloadMonthFolder(monthLink, fileType = None):
     for link in fullLinks:
         downloadDayFolder(link, fileType)
 
-# WIP
 def downloadDayFolder(dayLink, fileType = None):
     page = urlopen(dayLink)
     html = page.read().decode('utf-8')
@@ -78,7 +77,6 @@ def downloadDayFolder(dayLink, fileType = None):
     for link in fullLinks:
         downloadFile(link, fileType)
 
-# WIP
 def downloadFile(fileLink, fileType=None):
     page = urlopen(fileLink)
     html = page.read().decode('utf-8')
